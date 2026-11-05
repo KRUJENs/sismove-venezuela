@@ -1,0 +1,484 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SismoVE · Evolución de estadísticas</title>
+<style>
+:root{--ink:#16243F;--mut:#5a6678;--mut2:#8a94a6;--bone:#F6F2EA;--line:#e7e0d4;--green:#10916B;--red:#E12923;--blue:#2F6FED;--purple:#6B4AA6;--amber:#E8A33D;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:28px 20px 80px}
+header.top{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.logo{width:46px;height:46px;border-radius:12px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;font-size:24px;flex:0 0 auto}
+h1{font-size:26px;margin:0;letter-spacing:-.4px}
+h1 .ve{color:var(--red)}
+.sub{color:var(--mut);font-size:13.5px;margin:2px 0 0}
+.period{display:inline-flex;gap:8px;flex-wrap:wrap;margin:16px 0 26px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:12.5px;color:var(--ink);font-weight:600}
+.chip b{color:var(--green)}
+h2{font-size:16.5px;margin:34px 0 12px;display:flex;align-items:center;gap:8px;letter-spacing:-.2px}
+h2 .em{font-size:19px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 16px 14px}
+.kn{font-size:28px;font-weight:800;letter-spacing:-.6px;line-height:1}
+.kl{font-size:12.5px;color:var(--ink);font-weight:700;margin-top:7px}
+.ks{font-size:11.5px;color:var(--mut);margin-top:3px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 18px 14px;margin-top:12px}
+.panel h3{margin:0 0 3px;font-size:14.5px}
+.panel .note{color:var(--mut);font-size:12px;margin:0 0 12px}
+.explain{font-size:12.5px;color:var(--ink);background:#eef3fb;border-left:3px solid var(--blue);border-radius:0 10px 10px 0;padding:11px 14px;margin:14px 0 2px;line-height:1.55}
+.explain b{color:var(--ink)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 6px;font-size:12px;color:var(--mut)}
+.legend .lg{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+svg{display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+.bars{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.barrow{display:grid;grid-template-columns:170px 1fr auto;gap:10px;align-items:center;font-size:12.5px}
+.blab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);font-weight:600}
+.btrack{background:#f0ebe0;border-radius:6px;height:14px;overflow:hidden}
+.bfill{height:100%;border-radius:6px;min-width:2px}
+.bval{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700}
+.bpct{color:var(--mut2);font-weight:500}
+@media(max-width:520px){.barrow{grid-template-columns:110px 1fr auto}}
+table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
+th,td{padding:8px 11px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{background:#faf7f0;color:var(--mut);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0}
+tbody tr:nth-child(even){background:#faf8f3}
+tbody tr:hover{background:#f3eee3}
+.dt .yr{color:var(--mut2);font-size:10.5px}
+.method{font-size:12.5px;color:var(--mut);background:#fff;border:1px dashed var(--line);border-radius:14px;padding:14px 16px;margin-top:12px}
+.method b{color:var(--ink)}
+.method ul{margin:8px 0 0;padding-left:18px}
+.method li{margin:4px 0}
+footer{margin-top:40px;color:var(--mut2);font-size:11.5px;text-align:center}
+.hl{color:var(--red);font-weight:700}
+.tag{display:inline-block;background:#eef3ec;color:var(--green);border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:6px}
+</style></head><body><div class="wrap">
+
+<header class="top">
+  <div class="logo">💓</div>
+  <div><h1>Sismo<span class="ve">VE</span> · Evolución de estadísticas</h1>
+  <p class="sub">Cómo ha crecido el uso de la app desde su lanzamiento · datos anónimos y agregados</p></div>
+</header>
+
+<div class="period">
+  <span class="chip">📅 Desde <b>27 de junio de 2026</b></span>
+  <span class="chip">→ hasta <b>30 de junio de 2026</b></span>
+  <span class="chip">⏱️ <b>4</b> día(s) · <b>4</b> con actividad</span>
+  <span class="chip">🗂️ <b>2.890</b> eventos analizados</span>
+  <span class="chip">🔄 Generado 1 de julio de 2026 a las 4:42 a. m.</span>
+</div>
+
+<h2><span class="em">📈</span> Resumen general (acumulado a hoy)</h2>
+<div class="kpis">
+  <div class="kpi"><div class="kn" style="color:var(--blue)">318</div><div class="kl">Visitantes</div><div class="ks">323 sesiones únicas</div></div>
+  <div class="kpi"><div class="kn" style="color:var(--green)">1.258</div><div class="kl">Vistas de página</div><div class="ks">4,0 por visitante</div></div>
+  <div class="kpi"><div class="kn" style="color:var(--red)">1.301</div><div class="kl">Búsquedas de personas</div><div class="ks">el corazón humanitario de la app</div></div>
+  <div class="kpi"><div class="kn" style="color:var(--ink)">3</div><div class="kl">Reportes creados</div><div class="ks">emergencia / desaparecido / mapa</div></div>
+  <div class="kpi"><div class="kn" style="color:var(--amber)">10</div><div class="kl">Aperturas del bot</div><div class="ks">3,1% de los visitantes</div></div>
+  <div class="kpi"><div class="kn" style="color:var(--purple)">315</div><div class="kl">Vistas por día</div><div class="ks">promedio en días activos</div></div>
+</div>
+
+<h2><span class="em">📊</span> Evolución diaria · Visitantes y vistas</h2>
+<div class="panel">
+  <h3>Tráfico por día</h3>
+  <p class="note">Personas que entraron (visitantes) y pantallas que abrieron (vistas). El número real aparece sobre cada punto.</p>
+  <div class="legend"><span class="lg"><i style="background:#2F6FED"></i>Visitantes</span><span class="lg"><i style="background:#10916B"></i>Vistas</span></div><svg viewBox="0 0 860 320" width="100%" preserveAspectRatio="xMidYMid meet" role="img"><line x1="46" y1="274.0" x2="814" y2="274.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="278.0" text-anchor="end" font-size="11" fill="#8a94a6">0</text><line x1="46" y1="217.0" x2="814" y2="217.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="221.0" text-anchor="end" font-size="11" fill="#8a94a6">150</text><line x1="46" y1="160.0" x2="814" y2="160.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="164.0" text-anchor="end" font-size="11" fill="#8a94a6">300</text><line x1="46" y1="103.0" x2="814" y2="103.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="107.0" text-anchor="end" font-size="11" fill="#8a94a6">450</text><line x1="46" y1="46.0" x2="814" y2="46.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="50.0" text-anchor="end" font-size="11" fill="#8a94a6">600</text><text x="46.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">27/06</text><text x="302.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">28/06</text><text x="558.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">29/06</text><text x="814.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">30/06</text><path d="M46.0 274.0 L46.0 237.1 L302.0 238.7 L558.0 242.8 L814.0 256.5 L814.0 274.0 Z" fill="#2F6FED" opacity="0.08"/><path d="M46.0 237.1 L302.0 238.7 L558.0 242.8 L814.0 256.5" fill="none" stroke="#2F6FED" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="237.1" r="3" fill="#fff" stroke="#2F6FED" stroke-width="2"/><circle cx="302.0" cy="238.7" r="3" fill="#fff" stroke="#2F6FED" stroke-width="2"/><circle cx="558.0" cy="242.8" r="3" fill="#fff" stroke="#2F6FED" stroke-width="2"/><circle cx="814.0" cy="256.5" r="3" fill="#fff" stroke="#2F6FED" stroke-width="2"/><text x="46.0" y="227.1" text-anchor="middle" font-size="10.5" font-weight="800" fill="#2F6FED" stroke="#fff" stroke-width="2.8" paint-order="stroke">97</text><text x="302.0" y="228.7" text-anchor="middle" font-size="10.5" font-weight="800" fill="#2F6FED" stroke="#fff" stroke-width="2.8" paint-order="stroke">93</text><text x="558.0" y="232.8" text-anchor="middle" font-size="10.5" font-weight="800" fill="#2F6FED" stroke="#fff" stroke-width="2.8" paint-order="stroke">82</text><text x="814.0" y="246.5" text-anchor="middle" font-size="10.5" font-weight="800" fill="#2F6FED" stroke="#fff" stroke-width="2.8" paint-order="stroke">46</text><path d="M46.0 187.0 L302.0 82.9 L558.0 117.8 L814.0 230.3" fill="none" stroke="#10916B" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="187.0" r="3" fill="#fff" stroke="#10916B" stroke-width="2"/><circle cx="302.0" cy="82.9" r="3" fill="#fff" stroke="#10916B" stroke-width="2"/><circle cx="558.0" cy="117.8" r="3" fill="#fff" stroke="#10916B" stroke-width="2"/><circle cx="814.0" cy="230.3" r="3" fill="#fff" stroke="#10916B" stroke-width="2"/><text x="46.0" y="204.0" text-anchor="middle" font-size="10.5" font-weight="800" fill="#10916B" stroke="#fff" stroke-width="2.8" paint-order="stroke">229</text><text x="302.0" y="99.9" text-anchor="middle" font-size="10.5" font-weight="800" fill="#10916B" stroke="#fff" stroke-width="2.8" paint-order="stroke">503</text><text x="558.0" y="134.8" text-anchor="middle" font-size="10.5" font-weight="800" fill="#10916B" stroke="#fff" stroke-width="2.8" paint-order="stroke">411</text><text x="814.0" y="247.3" text-anchor="middle" font-size="10.5" font-weight="800" fill="#10916B" stroke="#fff" stroke-width="2.8" paint-order="stroke">115</text></svg>
+  <p class="explain">💡 <b>¿Por qué las dos líneas no suben y bajan igual?</b> No miden lo mismo: <b>visitantes</b> es cuánta gente entró; <b>vistas</b> es cuántas pantallas abrieron <i>en total</i>. La misma gente puede abrir muchas o pocas pantallas, así que <b>Vistas = Visitantes × pantallas por persona</b>. Ese último factor cambió cada día — se ve justo abajo.</p>
+</div>
+<div class="panel">
+  <h3>Vistas por visitante (qué tan a fondo exploran)</h3>
+  <p class="note">Es el factor que explica el desfase de arriba: el 28–29 cada visitante abrió ~5 pantallas; el 27 y 30, ~2,4. Por eso las vistas se dispararon aunque los visitantes bajaban.</p>
+  <div class="legend"><span class="lg"><i style="background:#6B4AA6"></i>Vistas por visitante</span></div><svg viewBox="0 0 860 320" width="100%" preserveAspectRatio="xMidYMid meet" role="img"><line x1="46" y1="274.0" x2="814" y2="274.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="278.0" text-anchor="end" font-size="11" fill="#8a94a6">0,0</text><line x1="46" y1="217.0" x2="814" y2="217.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="221.0" text-anchor="end" font-size="11" fill="#8a94a6">1,5</text><line x1="46" y1="160.0" x2="814" y2="160.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="164.0" text-anchor="end" font-size="11" fill="#8a94a6">3,0</text><line x1="46" y1="103.0" x2="814" y2="103.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="107.0" text-anchor="end" font-size="11" fill="#8a94a6">4,5</text><line x1="46" y1="46.0" x2="814" y2="46.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="50.0" text-anchor="end" font-size="11" fill="#8a94a6">6,0</text><text x="46.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">27/06</text><text x="302.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">28/06</text><text x="558.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">29/06</text><text x="814.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">30/06</text><path d="M46.0 274.0 L46.0 182.8 L302.0 68.8 L558.0 84.0 L814.0 179.0 L814.0 274.0 Z" fill="#6B4AA6" opacity="0.08"/><path d="M46.0 182.8 L302.0 68.8 L558.0 84.0 L814.0 179.0" fill="none" stroke="#6B4AA6" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="182.8" r="3" fill="#fff" stroke="#6B4AA6" stroke-width="2"/><circle cx="302.0" cy="68.8" r="3" fill="#fff" stroke="#6B4AA6" stroke-width="2"/><circle cx="558.0" cy="84.0" r="3" fill="#fff" stroke="#6B4AA6" stroke-width="2"/><circle cx="814.0" cy="179.0" r="3" fill="#fff" stroke="#6B4AA6" stroke-width="2"/><text x="46.0" y="172.8" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6B4AA6" stroke="#fff" stroke-width="2.8" paint-order="stroke">2,4</text><text x="302.0" y="58.8" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6B4AA6" stroke="#fff" stroke-width="2.8" paint-order="stroke">5,4</text><text x="558.0" y="74.0" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6B4AA6" stroke="#fff" stroke-width="2.8" paint-order="stroke">5,0</text><text x="814.0" y="169.0" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6B4AA6" stroke="#fff" stroke-width="2.8" paint-order="stroke">2,5</text></svg>
+</div>
+
+<h2><span class="em">🧭</span> Evolución acumulada (crecimiento total)</h2>
+<div class="panel">
+  <h3>Total acumulado</h3>
+  <p class="note">Es la suma que se va <b>acumulando</b> desde el primer día, por eso <b>siempre sube</b> (nunca baja) — no compares su forma con la gráfica diaria de arriba. Aquí lo que importa es la <b>pendiente</b>: cuanto más inclinada, más rápido crece. La cifra es el total al 30/06.</p>
+  <div class="legend"><span class="lg"><i style="background:#2F6FED"></i>Visitantes (acum.)</span><span class="lg"><i style="background:#10916B"></i>Vistas (acum.)</span><span class="lg"><i style="background:#E12923"></i>Búsquedas (acum.)</span></div><svg viewBox="0 0 860 320" width="100%" preserveAspectRatio="xMidYMid meet" role="img"><line x1="46" y1="274.0" x2="814" y2="274.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="278.0" text-anchor="end" font-size="11" fill="#8a94a6">0</text><line x1="46" y1="217.0" x2="814" y2="217.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="221.0" text-anchor="end" font-size="11" fill="#8a94a6">375</text><line x1="46" y1="160.0" x2="814" y2="160.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="164.0" text-anchor="end" font-size="11" fill="#8a94a6">750</text><line x1="46" y1="103.0" x2="814" y2="103.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="107.0" text-anchor="end" font-size="11" fill="#8a94a6">1.125</text><line x1="46" y1="46.0" x2="814" y2="46.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="50.0" text-anchor="end" font-size="11" fill="#8a94a6">1.500</text><text x="46.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">27/06</text><text x="302.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">28/06</text><text x="558.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">29/06</text><text x="814.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">30/06</text><path d="M46.0 274.0 L46.0 259.3 L302.0 245.1 L558.0 232.7 L814.0 225.7 L814.0 274.0 Z" fill="#2F6FED" opacity="0.08"/><path d="M46.0 259.3 L302.0 245.1 L558.0 232.7 L814.0 225.7" fill="none" stroke="#2F6FED" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="259.3" r="3" fill="#fff" stroke="#2F6FED" stroke-width="2"/><circle cx="302.0" cy="245.1" r="3" fill="#fff" stroke="#2F6FED" stroke-width="2"/><circle cx="558.0" cy="232.7" r="3" fill="#fff" stroke="#2F6FED" stroke-width="2"/><circle cx="814.0" cy="225.7" r="3" fill="#fff" stroke="#2F6FED" stroke-width="2"/><text x="814.0" y="215.7" text-anchor="middle" font-size="10.5" font-weight="800" fill="#2F6FED" stroke="#fff" stroke-width="2.8" paint-order="stroke">318</text><path d="M46.0 239.2 L302.0 162.7 L558.0 100.3 L814.0 82.8" fill="none" stroke="#10916B" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="239.2" r="3" fill="#fff" stroke="#10916B" stroke-width="2"/><circle cx="302.0" cy="162.7" r="3" fill="#fff" stroke="#10916B" stroke-width="2"/><circle cx="558.0" cy="100.3" r="3" fill="#fff" stroke="#10916B" stroke-width="2"/><circle cx="814.0" cy="82.8" r="3" fill="#fff" stroke="#10916B" stroke-width="2"/><text x="814.0" y="99.8" text-anchor="middle" font-size="10.5" font-weight="800" fill="#10916B" stroke="#fff" stroke-width="2.8" paint-order="stroke">1.258</text><path d="M46.0 261.1 L302.0 186.8 L558.0 104.7 L814.0 76.2" fill="none" stroke="#E12923" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="261.1" r="3" fill="#fff" stroke="#E12923" stroke-width="2"/><circle cx="302.0" cy="186.8" r="3" fill="#fff" stroke="#E12923" stroke-width="2"/><circle cx="558.0" cy="104.7" r="3" fill="#fff" stroke="#E12923" stroke-width="2"/><circle cx="814.0" cy="76.2" r="3" fill="#fff" stroke="#E12923" stroke-width="2"/><text x="814.0" y="66.2" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E12923" stroke="#fff" stroke-width="2.8" paint-order="stroke">1.301</text></svg>
+</div>
+
+<h2><span class="em">🔎</span> Uso humanitario · Búsquedas de personas por día</h2>
+<div class="panel">
+  <h3>Búsquedas en el buscador de personas</h3>
+  <p class="note">Cada punto es una búsqueda de un nombre en «¿A quién buscas?». Es el indicador de reunificación familiar.</p>
+  <div class="legend"><span class="lg"><i style="background:#E12923"></i>Búsquedas</span></div><svg viewBox="0 0 860 320" width="100%" preserveAspectRatio="xMidYMid meet" role="img"><line x1="46" y1="274.0" x2="814" y2="274.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="278.0" text-anchor="end" font-size="11" fill="#8a94a6">0</text><line x1="46" y1="217.0" x2="814" y2="217.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="221.0" text-anchor="end" font-size="11" fill="#8a94a6">150</text><line x1="46" y1="160.0" x2="814" y2="160.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="164.0" text-anchor="end" font-size="11" fill="#8a94a6">300</text><line x1="46" y1="103.0" x2="814" y2="103.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="107.0" text-anchor="end" font-size="11" fill="#8a94a6">450</text><line x1="46" y1="46.0" x2="814" y2="46.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="50.0" text-anchor="end" font-size="11" fill="#8a94a6">600</text><text x="46.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">27/06</text><text x="302.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">28/06</text><text x="558.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">29/06</text><text x="814.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">30/06</text><path d="M46.0 274.0 L46.0 241.7 L302.0 88.2 L558.0 68.8 L814.0 202.9 L814.0 274.0 Z" fill="#E12923" opacity="0.08"/><path d="M46.0 241.7 L302.0 88.2 L558.0 68.8 L814.0 202.9" fill="none" stroke="#E12923" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="241.7" r="3" fill="#fff" stroke="#E12923" stroke-width="2"/><circle cx="302.0" cy="88.2" r="3" fill="#fff" stroke="#E12923" stroke-width="2"/><circle cx="558.0" cy="68.8" r="3" fill="#fff" stroke="#E12923" stroke-width="2"/><circle cx="814.0" cy="202.9" r="3" fill="#fff" stroke="#E12923" stroke-width="2"/><text x="46.0" y="231.7" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E12923" stroke="#fff" stroke-width="2.8" paint-order="stroke">85</text><text x="302.0" y="78.2" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E12923" stroke="#fff" stroke-width="2.8" paint-order="stroke">489</text><text x="558.0" y="58.8" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E12923" stroke="#fff" stroke-width="2.8" paint-order="stroke">540</text><text x="814.0" y="192.9" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E12923" stroke="#fff" stroke-width="2.8" paint-order="stroke">187</text></svg>
+</div>
+
+<h2><span class="em">👥</span> Sesiones únicas y reportes por día</h2>
+<div class="grid2">
+  <div class="panel"><h3>Sesiones únicas / día</h3><p class="note">Dispositivos distintos que abrieron la app cada día.</p>
+    <div class="legend"><span class="lg"><i style="background:#6B4AA6"></i>Sesiones únicas</span></div><svg viewBox="0 0 860 320" width="100%" preserveAspectRatio="xMidYMid meet" role="img"><line x1="46" y1="274.0" x2="814" y2="274.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="278.0" text-anchor="end" font-size="11" fill="#8a94a6">0</text><line x1="46" y1="217.0" x2="814" y2="217.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="221.0" text-anchor="end" font-size="11" fill="#8a94a6">38</text><line x1="46" y1="160.0" x2="814" y2="160.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="164.0" text-anchor="end" font-size="11" fill="#8a94a6">75</text><line x1="46" y1="103.0" x2="814" y2="103.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="107.0" text-anchor="end" font-size="11" fill="#8a94a6">113</text><line x1="46" y1="46.0" x2="814" y2="46.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="50.0" text-anchor="end" font-size="11" fill="#8a94a6">150</text><text x="46.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">27/06</text><text x="302.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">28/06</text><text x="558.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">29/06</text><text x="814.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">30/06</text><path d="M46.0 274.0 L46.0 120.5 L302.0 117.4 L558.0 123.5 L814.0 181.3 L814.0 274.0 Z" fill="#6B4AA6" opacity="0.08"/><path d="M46.0 120.5 L302.0 117.4 L558.0 123.5 L814.0 181.3" fill="none" stroke="#6B4AA6" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="120.5" r="3" fill="#fff" stroke="#6B4AA6" stroke-width="2"/><circle cx="302.0" cy="117.4" r="3" fill="#fff" stroke="#6B4AA6" stroke-width="2"/><circle cx="558.0" cy="123.5" r="3" fill="#fff" stroke="#6B4AA6" stroke-width="2"/><circle cx="814.0" cy="181.3" r="3" fill="#fff" stroke="#6B4AA6" stroke-width="2"/><text x="46.0" y="110.5" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6B4AA6" stroke="#fff" stroke-width="2.8" paint-order="stroke">101</text><text x="302.0" y="107.4" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6B4AA6" stroke="#fff" stroke-width="2.8" paint-order="stroke">103</text><text x="558.0" y="113.5" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6B4AA6" stroke="#fff" stroke-width="2.8" paint-order="stroke">99</text><text x="814.0" y="171.3" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6B4AA6" stroke="#fff" stroke-width="2.8" paint-order="stroke">61</text></svg></div>
+  <div class="panel"><h3>Bot y reportes / día</h3><p class="note">Aperturas del asistente y reportes creados.</p>
+    <div class="legend"><span class="lg"><i style="background:#E8A33D"></i>Bot</span><span class="lg"><i style="background:#16243F"></i>Reportes</span></div><svg viewBox="0 0 860 320" width="100%" preserveAspectRatio="xMidYMid meet" role="img"><line x1="46" y1="274.0" x2="814" y2="274.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="278.0" text-anchor="end" font-size="11" fill="#8a94a6">0</text><line x1="46" y1="217.0" x2="814" y2="217.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="221.0" text-anchor="end" font-size="11" fill="#8a94a6">1</text><line x1="46" y1="160.0" x2="814" y2="160.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="164.0" text-anchor="end" font-size="11" fill="#8a94a6">3</text><line x1="46" y1="103.0" x2="814" y2="103.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="107.0" text-anchor="end" font-size="11" fill="#8a94a6">4</text><line x1="46" y1="46.0" x2="814" y2="46.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="50.0" text-anchor="end" font-size="11" fill="#8a94a6">5</text><text x="46.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">27/06</text><text x="302.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">28/06</text><text x="558.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">29/06</text><text x="814.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">30/06</text><path d="M46.0 274.0 L302.0 46.0 L558.0 137.2 L814.0 182.8" fill="none" stroke="#E8A33D" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="274.0" r="3" fill="#fff" stroke="#E8A33D" stroke-width="2"/><circle cx="302.0" cy="46.0" r="3" fill="#fff" stroke="#E8A33D" stroke-width="2"/><circle cx="558.0" cy="137.2" r="3" fill="#fff" stroke="#E8A33D" stroke-width="2"/><circle cx="814.0" cy="182.8" r="3" fill="#fff" stroke="#E8A33D" stroke-width="2"/><text x="46.0" y="264.0" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E8A33D" stroke="#fff" stroke-width="2.8" paint-order="stroke">0</text><text x="302.0" y="36.0" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E8A33D" stroke="#fff" stroke-width="2.8" paint-order="stroke">5</text><text x="558.0" y="127.2" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E8A33D" stroke="#fff" stroke-width="2.8" paint-order="stroke">3</text><text x="814.0" y="172.8" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E8A33D" stroke="#fff" stroke-width="2.8" paint-order="stroke">2</text><path d="M46.0 274.0 L302.0 182.8 L558.0 274.0 L814.0 228.4" fill="none" stroke="#16243F" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="274.0" r="3" fill="#fff" stroke="#16243F" stroke-width="2"/><circle cx="302.0" cy="182.8" r="3" fill="#fff" stroke="#16243F" stroke-width="2"/><circle cx="558.0" cy="274.0" r="3" fill="#fff" stroke="#16243F" stroke-width="2"/><circle cx="814.0" cy="228.4" r="3" fill="#fff" stroke="#16243F" stroke-width="2"/><text x="46.0" y="291.0" text-anchor="middle" font-size="10.5" font-weight="800" fill="#16243F" stroke="#fff" stroke-width="2.8" paint-order="stroke">0</text><text x="302.0" y="199.8" text-anchor="middle" font-size="10.5" font-weight="800" fill="#16243F" stroke="#fff" stroke-width="2.8" paint-order="stroke">2</text><text x="558.0" y="291.0" text-anchor="middle" font-size="10.5" font-weight="800" fill="#16243F" stroke="#fff" stroke-width="2.8" paint-order="stroke">0</text><text x="814.0" y="245.4" text-anchor="middle" font-size="10.5" font-weight="800" fill="#16243F" stroke="#fff" stroke-width="2.8" paint-order="stroke">1</text></svg></div>
+</div>
+
+<h2><span class="em">🗂️</span> Secciones más vistas</h2>
+<div class="panel"><h3>¿Qué pantallas miran más?</h3><p class="note">Reparto de las 1.258 vistas totales por sección.</p>
+  <div class="bars">
+    <div class="barrow">
+      <div class="blab" title="Inicio">Inicio</div>
+      <div class="btrack"><div class="bfill" style="width:100.0%;background:#10916B"></div></div>
+      <div class="bval">379 <span class="bpct">· 30,1%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Buscar personas">Buscar personas</div>
+      <div class="btrack"><div class="bfill" style="width:80.5%;background:#10916B"></div></div>
+      <div class="bval">305 <span class="bpct">· 24,2%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Refugios">Refugios</div>
+      <div class="btrack"><div class="bfill" style="width:51.2%;background:#10916B"></div></div>
+      <div class="bval">194 <span class="bpct">· 15,4%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Pedir ayuda (SOS)">Pedir ayuda (SOS)</div>
+      <div class="btrack"><div class="bfill" style="width:29.3%;background:#10916B"></div></div>
+      <div class="bval">111 <span class="bpct">· 8,8%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Más">Más</div>
+      <div class="btrack"><div class="bfill" style="width:20.8%;background:#10916B"></div></div>
+      <div class="bval">79 <span class="bpct">· 6,3%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Niños">Niños</div>
+      <div class="btrack"><div class="bfill" style="width:12.9%;background:#10916B"></div></div>
+      <div class="bval">49 <span class="bpct">· 3,9%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Grupos por zona">Grupos por zona</div>
+      <div class="btrack"><div class="bfill" style="width:9.0%;background:#10916B"></div></div>
+      <div class="bval">34 <span class="bpct">· 2,7%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Panel">Panel</div>
+      <div class="btrack"><div class="bfill" style="width:8.7%;background:#10916B"></div></div>
+      <div class="bval">33 <span class="bpct">· 2,6%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Qué hacer">Qué hacer</div>
+      <div class="btrack"><div class="bfill" style="width:6.1%;background:#10916B"></div></div>
+      <div class="bval">23 <span class="bpct">· 1,8%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Bot / Asistente">Bot / Asistente</div>
+      <div class="btrack"><div class="bfill" style="width:3.7%;background:#10916B"></div></div>
+      <div class="bval">14 <span class="bpct">· 1,1%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Alertas">Alertas</div>
+      <div class="btrack"><div class="bfill" style="width:3.7%;background:#10916B"></div></div>
+      <div class="bval">14 <span class="bpct">· 1,1%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Donar">Donar</div>
+      <div class="btrack"><div class="bfill" style="width:2.1%;background:#10916B"></div></div>
+      <div class="bval">8 <span class="bpct">· 0,6%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Estoy a salvo">Estoy a salvo</div>
+      <div class="btrack"><div class="bfill" style="width:1.8%;background:#10916B"></div></div>
+      <div class="bval">7 <span class="bpct">· 0,6%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Apoyo">Apoyo</div>
+      <div class="btrack"><div class="bfill" style="width:1.1%;background:#10916B"></div></div>
+      <div class="bval">4 <span class="bpct">· 0,3%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Centros de acopio">Centros de acopio</div>
+      <div class="btrack"><div class="bfill" style="width:1.1%;background:#10916B"></div></div>
+      <div class="bval">4 <span class="bpct">· 0,3%</span></div>
+    </div></div>
+</div>
+
+<h2><span class="em">🔗</span> Cómo llegan (fuentes de tráfico)</h2>
+<div class="grid2">
+  <div class="panel"><h3>Reparto por fuente</h3><p class="note">Por dónde entraron los 318 visitantes.</p>
+    <div class="bars">
+    <div class="barrow">
+      <div class="blab" title="🔗 Directo (enlace/QR)">🔗 Directo (enlace/QR)</div>
+      <div class="btrack"><div class="bfill" style="width:100.0%;background:#2F6FED"></div></div>
+      <div class="bval">259 <span class="bpct">· 81,4%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🌐 evoluto.digital">🌐 evoluto.digital</div>
+      <div class="btrack"><div class="bfill" style="width:9.7%;background:#2F6FED"></div></div>
+      <div class="bval">25 <span class="bpct">· 7,9%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="📸 Instagram">📸 Instagram</div>
+      <div class="btrack"><div class="bfill" style="width:5.0%;background:#2F6FED"></div></div>
+      <div class="bval">13 <span class="bpct">· 4,1%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🔎 Google">🔎 Google</div>
+      <div class="btrack"><div class="bfill" style="width:3.9%;background:#2F6FED"></div></div>
+      <div class="bval">10 <span class="bpct">· 3,1%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🌐 profesorbriceno.com">🌐 profesorbriceno.com</div>
+      <div class="btrack"><div class="bfill" style="width:2.3%;background:#2F6FED"></div></div>
+      <div class="bval">6 <span class="bpct">· 1,9%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="↪️ Interno (dentro de la app)">↪️ Interno (dentro de la app)</div>
+      <div class="btrack"><div class="bfill" style="width:1.2%;background:#2F6FED"></div></div>
+      <div class="bval">3 <span class="bpct">· 0,9%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="✖️ Twitter/X">✖️ Twitter/X</div>
+      <div class="btrack"><div class="bfill" style="width:0.4%;background:#2F6FED"></div></div>
+      <div class="bval">1 <span class="bpct">· 0,3%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🔵 Facebook">🔵 Facebook</div>
+      <div class="btrack"><div class="bfill" style="width:0.4%;background:#2F6FED"></div></div>
+      <div class="bval">1 <span class="bpct">· 0,3%</span></div>
+    </div></div></div>
+  <div class="panel"><h3>Evolución de las fuentes principales</h3><p class="note">Cómo cambió día a día el origen del tráfico.</p>
+    <div class="legend"><span class="lg"><i style="background:#2F6FED"></i>🔗 Directo (enlace/QR)</span><span class="lg"><i style="background:#10916B"></i>🌐 evoluto.digital</span><span class="lg"><i style="background:#E12923"></i>📸 Instagram</span><span class="lg"><i style="background:#6B4AA6"></i>🔎 Google</span></div><svg viewBox="0 0 860 320" width="100%" preserveAspectRatio="xMidYMid meet" role="img"><line x1="46" y1="274.0" x2="814" y2="274.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="278.0" text-anchor="end" font-size="11" fill="#8a94a6">0</text><line x1="46" y1="217.0" x2="814" y2="217.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="221.0" text-anchor="end" font-size="11" fill="#8a94a6">25</text><line x1="46" y1="160.0" x2="814" y2="160.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="164.0" text-anchor="end" font-size="11" fill="#8a94a6">50</text><line x1="46" y1="103.0" x2="814" y2="103.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="107.0" text-anchor="end" font-size="11" fill="#8a94a6">75</text><line x1="46" y1="46.0" x2="814" y2="46.0" stroke="#e7e0d4" stroke-width="1"/><text x="38" y="50.0" text-anchor="end" font-size="11" fill="#8a94a6">100</text><text x="46.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">27/06</text><text x="302.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">28/06</text><text x="558.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">29/06</text><text x="814.0" y="292" text-anchor="middle" font-size="10.5" fill="#8a94a6">30/06</text><path d="M46.0 73.4 L302.0 121.2 L558.0 130.4 L814.0 180.5" fill="none" stroke="#2F6FED" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="73.4" r="3" fill="#fff" stroke="#2F6FED" stroke-width="2"/><circle cx="302.0" cy="121.2" r="3" fill="#fff" stroke="#2F6FED" stroke-width="2"/><circle cx="558.0" cy="130.4" r="3" fill="#fff" stroke="#2F6FED" stroke-width="2"/><circle cx="814.0" cy="180.5" r="3" fill="#fff" stroke="#2F6FED" stroke-width="2"/><text x="46.0" y="63.4" text-anchor="middle" font-size="10.5" font-weight="800" fill="#2F6FED" stroke="#fff" stroke-width="2.8" paint-order="stroke">88</text><text x="302.0" y="111.2" text-anchor="middle" font-size="10.5" font-weight="800" fill="#2F6FED" stroke="#fff" stroke-width="2.8" paint-order="stroke">67</text><text x="558.0" y="120.4" text-anchor="middle" font-size="10.5" font-weight="800" fill="#2F6FED" stroke="#fff" stroke-width="2.8" paint-order="stroke">63</text><text x="814.0" y="170.5" text-anchor="middle" font-size="10.5" font-weight="800" fill="#2F6FED" stroke="#fff" stroke-width="2.8" paint-order="stroke">41</text><path d="M46.0 260.3 L302.0 239.8 L558.0 267.2 L814.0 271.7" fill="none" stroke="#10916B" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="260.3" r="3" fill="#fff" stroke="#10916B" stroke-width="2"/><circle cx="302.0" cy="239.8" r="3" fill="#fff" stroke="#10916B" stroke-width="2"/><circle cx="558.0" cy="267.2" r="3" fill="#fff" stroke="#10916B" stroke-width="2"/><circle cx="814.0" cy="271.7" r="3" fill="#fff" stroke="#10916B" stroke-width="2"/><text x="46.0" y="277.3" text-anchor="middle" font-size="10.5" font-weight="800" fill="#10916B" stroke="#fff" stroke-width="2.8" paint-order="stroke">6</text><text x="302.0" y="256.8" text-anchor="middle" font-size="10.5" font-weight="800" fill="#10916B" stroke="#fff" stroke-width="2.8" paint-order="stroke">15</text><text x="558.0" y="284.2" text-anchor="middle" font-size="10.5" font-weight="800" fill="#10916B" stroke="#fff" stroke-width="2.8" paint-order="stroke">3</text><text x="814.0" y="288.7" text-anchor="middle" font-size="10.5" font-weight="800" fill="#10916B" stroke="#fff" stroke-width="2.8" paint-order="stroke">1</text><path d="M46.0 269.4 L302.0 264.9 L558.0 260.3 L814.0 271.7" fill="none" stroke="#E12923" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="269.4" r="3" fill="#fff" stroke="#E12923" stroke-width="2"/><circle cx="302.0" cy="264.9" r="3" fill="#fff" stroke="#E12923" stroke-width="2"/><circle cx="558.0" cy="260.3" r="3" fill="#fff" stroke="#E12923" stroke-width="2"/><circle cx="814.0" cy="271.7" r="3" fill="#fff" stroke="#E12923" stroke-width="2"/><text x="46.0" y="259.4" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E12923" stroke="#fff" stroke-width="2.8" paint-order="stroke">2</text><text x="302.0" y="254.9" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E12923" stroke="#fff" stroke-width="2.8" paint-order="stroke">4</text><text x="558.0" y="250.3" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E12923" stroke="#fff" stroke-width="2.8" paint-order="stroke">6</text><text x="814.0" y="261.7" text-anchor="middle" font-size="10.5" font-weight="800" fill="#E12923" stroke="#fff" stroke-width="2.8" paint-order="stroke">1</text><path d="M46.0 274.0 L302.0 267.2 L558.0 258.0 L814.0 274.0" fill="none" stroke="#6B4AA6" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="46.0" cy="274.0" r="3" fill="#fff" stroke="#6B4AA6" stroke-width="2"/><circle cx="302.0" cy="267.2" r="3" fill="#fff" stroke="#6B4AA6" stroke-width="2"/><circle cx="558.0" cy="258.0" r="3" fill="#fff" stroke="#6B4AA6" stroke-width="2"/><circle cx="814.0" cy="274.0" r="3" fill="#fff" stroke="#6B4AA6" stroke-width="2"/><text x="46.0" y="291.0" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6B4AA6" stroke="#fff" stroke-width="2.8" paint-order="stroke">0</text><text x="302.0" y="284.2" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6B4AA6" stroke="#fff" stroke-width="2.8" paint-order="stroke">3</text><text x="558.0" y="275.0" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6B4AA6" stroke="#fff" stroke-width="2.8" paint-order="stroke">7</text><text x="814.0" y="291.0" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6B4AA6" stroke="#fff" stroke-width="2.8" paint-order="stroke">0</text></svg></div>
+</div>
+
+<h2><span class="em">🌎</span> De dónde entran</h2>
+<div class="grid2">
+  <div class="panel"><h3>Países</h3><p class="note">Ubicación aproximada por IP (no es GPS).</p>
+    <div class="bars">
+    <div class="barrow">
+      <div class="blab" title="🇻🇪 Venezuela">🇻🇪 Venezuela</div>
+      <div class="btrack"><div class="bfill" style="width:100.0%;background:#10916B"></div></div>
+      <div class="bval">123 <span class="bpct">· 38,7%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇺🇸 EE. UU.">🇺🇸 EE. UU.</div>
+      <div class="btrack"><div class="bfill" style="width:49.6%;background:#10916B"></div></div>
+      <div class="bval">61 <span class="bpct">· 19,2%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇪🇸 España">🇪🇸 España</div>
+      <div class="btrack"><div class="bfill" style="width:35.0%;background:#10916B"></div></div>
+      <div class="bval">43 <span class="bpct">· 13,5%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇩🇪 Alemania">🇩🇪 Alemania</div>
+      <div class="btrack"><div class="bfill" style="width:10.6%;background:#10916B"></div></div>
+      <div class="bval">13 <span class="bpct">· 4,1%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇨🇱 Chile">🇨🇱 Chile</div>
+      <div class="btrack"><div class="bfill" style="width:8.9%;background:#10916B"></div></div>
+      <div class="bval">11 <span class="bpct">· 3,5%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇨🇴 Colombia">🇨🇴 Colombia</div>
+      <div class="btrack"><div class="bfill" style="width:6.5%;background:#10916B"></div></div>
+      <div class="bval">8 <span class="bpct">· 2,5%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇧🇷 Brasil">🇧🇷 Brasil</div>
+      <div class="btrack"><div class="bfill" style="width:3.3%;background:#10916B"></div></div>
+      <div class="bval">4 <span class="bpct">· 1,3%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇵🇾 Paraguay">🇵🇾 Paraguay</div>
+      <div class="btrack"><div class="bfill" style="width:2.4%;background:#10916B"></div></div>
+      <div class="bval">3 <span class="bpct">· 0,9%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🏳️ AW">🏳️ AW</div>
+      <div class="btrack"><div class="bfill" style="width:1.6%;background:#10916B"></div></div>
+      <div class="bval">2 <span class="bpct">· 0,6%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇵🇪 Perú">🇵🇪 Perú</div>
+      <div class="btrack"><div class="bfill" style="width:1.6%;background:#10916B"></div></div>
+      <div class="bval">2 <span class="bpct">· 0,6%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇫🇷 Francia">🇫🇷 Francia</div>
+      <div class="btrack"><div class="bfill" style="width:0.8%;background:#10916B"></div></div>
+      <div class="bval">1 <span class="bpct">· 0,3%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇲🇽 México">🇲🇽 México</div>
+      <div class="btrack"><div class="bfill" style="width:0.8%;background:#10916B"></div></div>
+      <div class="bval">1 <span class="bpct">· 0,3%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇨🇷 Costa Rica">🇨🇷 Costa Rica</div>
+      <div class="btrack"><div class="bfill" style="width:0.8%;background:#10916B"></div></div>
+      <div class="bval">1 <span class="bpct">· 0,3%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇵🇹 Portugal">🇵🇹 Portugal</div>
+      <div class="btrack"><div class="bfill" style="width:0.8%;background:#10916B"></div></div>
+      <div class="bval">1 <span class="bpct">· 0,3%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="🇬🇧 Reino Unido">🇬🇧 Reino Unido</div>
+      <div class="btrack"><div class="bfill" style="width:0.8%;background:#10916B"></div></div>
+      <div class="bval">1 <span class="bpct">· 0,3%</span></div>
+    </div></div></div>
+  <div class="panel"><h3>Ciudades</h3><p class="note">Ciudad aproximada por IP.</p>
+    <div class="bars">
+    <div class="barrow">
+      <div class="blab" title="Caracas">Caracas</div>
+      <div class="btrack"><div class="bfill" style="width:100.0%;background:#6B4AA6"></div></div>
+      <div class="bval">36 <span class="bpct">· 11,3%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="San Jose">San Jose</div>
+      <div class="btrack"><div class="bfill" style="width:25.0%;background:#6B4AA6"></div></div>
+      <div class="bval">9 <span class="bpct">· 2,8%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Valencia">Valencia</div>
+      <div class="btrack"><div class="bfill" style="width:25.0%;background:#6B4AA6"></div></div>
+      <div class="bval">9 <span class="bpct">· 2,8%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Madrid">Madrid</div>
+      <div class="btrack"><div class="bfill" style="width:25.0%;background:#6B4AA6"></div></div>
+      <div class="bval">9 <span class="bpct">· 2,8%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Santiago">Santiago</div>
+      <div class="btrack"><div class="bfill" style="width:25.0%;background:#6B4AA6"></div></div>
+      <div class="bval">9 <span class="bpct">· 2,8%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Maracaibo">Maracaibo</div>
+      <div class="btrack"><div class="bfill" style="width:22.2%;background:#6B4AA6"></div></div>
+      <div class="bval">8 <span class="bpct">· 2,5%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Barquisimeto">Barquisimeto</div>
+      <div class="btrack"><div class="bfill" style="width:22.2%;background:#6B4AA6"></div></div>
+      <div class="bval">8 <span class="bpct">· 2,5%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Miami">Miami</div>
+      <div class="btrack"><div class="bfill" style="width:16.7%;background:#6B4AA6"></div></div>
+      <div class="bval">6 <span class="bpct">· 1,9%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Trujillo">Trujillo</div>
+      <div class="btrack"><div class="bfill" style="width:13.9%;background:#6B4AA6"></div></div>
+      <div class="bval">5 <span class="bpct">· 1,6%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Maracay">Maracay</div>
+      <div class="btrack"><div class="bfill" style="width:13.9%;background:#6B4AA6"></div></div>
+      <div class="bval">5 <span class="bpct">· 1,6%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Bogotá">Bogotá</div>
+      <div class="btrack"><div class="bfill" style="width:13.9%;background:#6B4AA6"></div></div>
+      <div class="bval">5 <span class="bpct">· 1,6%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Frankfurt am Main">Frankfurt am Main</div>
+      <div class="btrack"><div class="bfill" style="width:13.9%;background:#6B4AA6"></div></div>
+      <div class="bval">5 <span class="bpct">· 1,6%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Houston">Houston</div>
+      <div class="btrack"><div class="bfill" style="width:13.9%;background:#6B4AA6"></div></div>
+      <div class="bval">5 <span class="bpct">· 1,6%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Barcelona">Barcelona</div>
+      <div class="btrack"><div class="bfill" style="width:13.9%;background:#6B4AA6"></div></div>
+      <div class="bval">5 <span class="bpct">· 1,6%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Richmond">Richmond</div>
+      <div class="btrack"><div class="bfill" style="width:11.1%;background:#6B4AA6"></div></div>
+      <div class="bval">4 <span class="bpct">· 1,3%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Turmero">Turmero</div>
+      <div class="btrack"><div class="bfill" style="width:8.3%;background:#6B4AA6"></div></div>
+      <div class="bval">3 <span class="bpct">· 0,9%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Stuttgart">Stuttgart</div>
+      <div class="btrack"><div class="bfill" style="width:8.3%;background:#6B4AA6"></div></div>
+      <div class="bval">3 <span class="bpct">· 0,9%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Asunción">Asunción</div>
+      <div class="btrack"><div class="bfill" style="width:8.3%;background:#6B4AA6"></div></div>
+      <div class="bval">3 <span class="bpct">· 0,9%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Cabimas">Cabimas</div>
+      <div class="btrack"><div class="bfill" style="width:8.3%;background:#6B4AA6"></div></div>
+      <div class="bval">3 <span class="bpct">· 0,9%</span></div>
+    </div>
+    <div class="barrow">
+      <div class="blab" title="Los Teques">Los Teques</div>
+      <div class="btrack"><div class="bfill" style="width:8.3%;background:#6B4AA6"></div></div>
+      <div class="bval">3 <span class="bpct">· 0,9%</span></div>
+    </div></div></div>
+</div>
+
+<h2><span class="em">📋</span> Detalle día por día (todos los datos)</h2>
+<div class="tablewrap"><table>
+  <thead><tr><th>Día</th><th>Visitantes</th><th>Sesiones ún.</th><th>Vistas</th><th>Búsquedas</th><th>Reportes</th><th>Bot</th><th>Vistas/vis.</th></tr></thead>
+  <tbody><tr>
+  <td class="dt">27/06<span class="yr">/2026</span></td>
+  <td>97</td><td>101</td><td>229</td>
+  <td>85</td><td>0</td><td>0</td>
+  <td>2,4</td>
+</tr><tr>
+  <td class="dt">28/06<span class="yr">/2026</span></td>
+  <td>93</td><td>103</td><td>503</td>
+  <td>489</td><td>2</td><td>5</td>
+  <td>5,4</td>
+</tr><tr>
+  <td class="dt">29/06<span class="yr">/2026</span></td>
+  <td>82</td><td>99</td><td>411</td>
+  <td>540</td><td>0</td><td>3</td>
+  <td>5,0</td>
+</tr><tr>
+  <td class="dt">30/06<span class="yr">/2026</span></td>
+  <td>46</td><td>61</td><td>115</td>
+  <td>187</td><td>1</td><td>2</td>
+  <td>2,5</td>
+</tr></tbody>
+  <tfoot><tr style="font-weight:800;border-top:2px solid var(--line)">
+    <td>TOTAL</td><td>318</td><td>323</td><td>1.258</td>
+    <td>1.301</td><td>3</td><td>10</td><td>4,0</td>
+  </tr></tfoot>
+</table></div>
+
+<h2><span class="em">🏆</span> Máximos históricos</h2>
+<div class="kpis">
+  <div class="kpi"><div class="kn" style="color:var(--green)">503</div><div class="kl">Día de más vistas</div><div class="ks">28/06/2026</div></div>
+  <div class="kpi"><div class="kn" style="color:var(--blue)">97</div><div class="kl">Día de más visitantes</div><div class="ks">27/06/2026</div></div>
+  <div class="kpi"><div class="kn" style="color:var(--red)">540</div><div class="kl">Día de más búsquedas</div><div class="ks">29/06/2026</div></div>
+  <div class="kpi"><div class="kn" style="color:var(--purple)">103</div><div class="kl">Máx. sesiones en un día</div><div class="ks">28/06</div></div>
+</div>
+
+<div class="method">
+  <b>📖 Cómo leer estos números (metodología)</b>
+  <ul>
+    <li><b>Visitantes:</b> veces que se abrió la app (evento <code>visit</code> al iniciar sesión de navegación).</li>
+    <li><b>Sesiones únicas:</b> identificadores de sesión distintos — aproxima «dispositivos distintos».</li>
+    <li><b>Vistas de página:</b> cada pantalla abierta dentro de la app. <b>Vistas/visitante</b> = cuánto exploran de media.</li>
+    <li><b>Búsquedas:</b> búsquedas de un nombre en el buscador de personas (reunificación familiar).</li>
+    <li><b>Reportes:</b> reportes creados en la app (emergencia, desaparecido, mapa). No incluye listados externos.</li>
+    <li><b>Bot:</b> veces que se abrió el asistente de Telegram desde la app.</li>
+    <li><b>Fuentes / países / ciudades:</b> se derivan del evento <code>visit</code>. La ubicación es <b>aproximada por IP</b> (no GPS) y sirve solo para agregados; <b>no se guarda la IP ni ningún dato personal</b>.</li>
+    <li>Los días se cuentan en hora de <b>Caracas (UTC−4)</b>. «Desde el lanzamiento» = primer evento registrado.</li>
+  </ul>
+</div>
+
+<footer>SismoVE · Informe generado automáticamente a partir de <code>analytics_events</code> (anónimo, agregado) · 1 de julio de 2026 a las 4:42 a. m. · 2.890 eventos</footer>
+
+</div></body></html>

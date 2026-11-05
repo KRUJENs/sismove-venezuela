@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SismoVE · Visor 3D de afectación · Caracas / La Guaira · Pre/Post 24-jun-2026</title>
+
+<!-- MapLibre GL JS (motor fiable en GPU integradas, render WebGL estable) -->
+<link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<!-- geotiff.js para leer el GeoTIFF de deformación InSAR -->
+<script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
+
+<style>
+  :root{
+    --bg:#0a0e14; --panel:#10151f; --panel-2:#161d2b; --line:#222c3d;
+    --txt:#d7e0ee; --muted:#7d8aa0; --accent:#3da9fc;
+    --sismo:#4B3658;
+    --d-destroyed:#e23b3b; --d-severe:#f5772a; --d-damaged:#f5b82e;
+    --d-possible:#ffe066; --d-none:#3ec46d; --d-intact:#8b97ad;
+    --mono:'SFMono-Regular',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:var(--sans);overflow:hidden}
+  #map{position:absolute;inset:46px 0 0 0}
+  .maplibregl-ctrl-attrib{font-size:10px!important}
+
+  /* Cabecera del evento */
+  #eventbar{
+    position:absolute;top:0;left:0;right:0;z-index:30;
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;height:46px;
+    padding:0 14px;background:linear-gradient(180deg,rgba(10,14,20,.98),rgba(10,14,20,.85));
+    border-bottom:1px solid var(--line);backdrop-filter:blur(6px);font-size:12px;
+  }
+  #eventbar .brand{font-weight:800;color:#fff;letter-spacing:.5px;background:var(--sismo);
+    padding:3px 9px;border-radius:5px;font-size:12px}
+  #eventbar .tag{font-family:var(--mono);font-weight:600;color:#fff;background:var(--d-destroyed);
+    padding:2px 7px;border-radius:3px;letter-spacing:.5px}
+  #eventbar b{color:#fff}
+  #eventbar .sep{color:var(--line)}
+  #eventbar .muted{color:var(--muted)}
+  #eventbar .demoflag{margin-left:auto;font-family:var(--mono);font-weight:700;font-size:11px;
+    color:#04121f;background:#ffe066;padding:3px 9px;border-radius:4px;letter-spacing:.4px}
+
+  /* Panel de control */
+  #panel{
+    position:absolute;top:46px;left:0;z-index:25;width:340px;max-width:90vw;
+    height:calc(100% - 46px);overflow-y:auto;
+    background:var(--panel);border-right:1px solid var(--line);
+    padding:14px 14px 60px;font-size:13px;
+  }
+  #panel.collapsed{transform:translateX(-100%)}
+  #panel,#toggle{transition:transform .25s ease}
+  #toggle{
+    position:absolute;top:54px;left:340px;z-index:26;
+    background:var(--panel);color:var(--txt);border:1px solid var(--line);border-left:none;
+    border-radius:0 6px 6px 0;width:26px;height:46px;cursor:pointer;font-size:15px;
+  }
+  #panel.collapsed ~ #toggle{transform:translateX(-340px)}
+
+  .block{border:1px solid var(--line);border-radius:8px;margin-bottom:12px;background:var(--panel-2);overflow:hidden}
+  .block.hero{border-color:var(--accent);box-shadow:0 0 0 1px rgba(61,169,252,.25)}
+  .block > h3{
+    margin:0;padding:9px 12px;font-size:12px;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--txt);background:rgba(61,169,252,.06);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:8px;cursor:pointer;
+  }
+  .block.hero > h3{background:rgba(61,169,252,.14)}
+  .block > h3 .k{font-family:var(--mono);color:var(--accent);font-size:13px}
+  .block .body{padding:11px 12px}
+  .block.folded .body{display:none}
+
+  label.lab{display:block;color:var(--muted);font-size:11px;margin:9px 0 4px;letter-spacing:.3px}
+  input[type=text],select{
+    width:100%;background:#0c1119;color:var(--txt);border:1px solid var(--line);
+    border-radius:6px;padding:7px 8px;font-family:var(--mono);font-size:11px;
+  }
+  input[type=file]{width:100%;font-size:11px;color:var(--muted)}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .row{display:flex;gap:8px}
+  .row > *{flex:1}
+  button.act{
+    width:100%;margin-top:9px;background:var(--accent);color:#04121f;border:none;
+    border-radius:6px;padding:8px;font-weight:600;font-size:12px;cursor:pointer;
+  }
+  button.act.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  button.act.big{padding:11px;font-size:13px}
+  button.act:disabled{opacity:.4;cursor:default}
+
+  .seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-top:4px}
+  .seg button{flex:1;background:#0c1119;color:var(--muted);border:none;padding:7px 4px;font-size:11px;cursor:pointer}
+  .seg button.on{background:var(--accent);color:#04121f;font-weight:600}
+  .seg.prepost button.on[data-pp="post"]{background:var(--d-destroyed);color:#fff}
+
+  .status{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:7px;line-height:1.5}
+  .status.ok{color:var(--d-none)} .status.err{color:var(--d-destroyed)}
+
+  .legend{margin-top:9px}
+  .legend .item{display:flex;align-items:center;gap:7px;font-size:11px;margin:3px 0}
+  .legend .sw{width:13px;height:13px;border-radius:3px;flex:none}
+  .gradient{height:13px;border-radius:3px;margin:4px 0;
+    background:linear-gradient(90deg,#2c7bb6,#abd9e9,#f7f7f7,#fdae61,#d7191c)}
+  .gradient-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+  .hint{font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:6px}
+  .toggle-row{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;margin-bottom:8px}
+  .toggle-row input{width:15px;height:15px;accent-color:var(--accent)}
+  a{color:var(--accent)}
+
+  #demoNote{
+    position:absolute;right:14px;bottom:30px;z-index:28;max-width:300px;
+    background:rgba(16,21,31,.94);border:1px solid #ffe066;border-radius:8px;
+    padding:10px 12px;font-size:11px;line-height:1.5;color:var(--txt);
+    box-shadow:0 6px 22px rgba(0,0,0,.5);
+  }
+  #demoNote b{color:#ffe066}
+  #demoNote button{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;margin:-4px -4px 0 0}
+</style>
+</head>
+<body>
+
+<div id="eventbar">
+  <span class="brand">SismoVE</span>
+  <span class="tag">M7.2 + M7.5</span>
+  <span><b>24 jun 2026</b> · 18:04 VET</span>
+  <span class="sep">|</span>
+  <span>La Guaira · Caracas</span>
+  <span class="sep">|</span>
+  <span class="muted">epicentro San Felipe (Yaracuy) · prof. 10–20 km</span>
+  <span class="demoflag">⚠ DATOS DE SIMULACIÓN (DEMO)</span>
+</div>
+
+<div id="map"></div>
+
+<div id="panel">
+
+  <!-- HERO · DEMO afectación + Antes/Después -->
+  <div class="block hero" id="b-demo">
+    <h3><span class="k">★</span> Afectación de edificios · DEMO</h3>
+    <div class="body">
+      <button class="act big" id="genDemo">Regenerar edificios de demostración</button>
+      <label class="lab">Estado del terremoto</label>
+      <div class="seg prepost" id="prepost">
+        <button data-pp="pre" class="on">🏙️ ANTES (intacto)</button>
+        <button data-pp="post">💥 DESPUÉS (daño)</button>
+      </div>
+      <label class="lab">Opacidad <span id="demoOpVal">90%</span></label>
+      <input type="range" id="demoOp" min="20" max="100" value="90">
+      <div class="legend">
+        <div class="item"><span class="sw" style="background:var(--d-destroyed)"></span> Destruido / colapsado</div>
+        <div class="item"><span class="sw" style="background:var(--d-severe)"></span> Daño severo</div>
+        <div class="item"><span class="sw" style="background:var(--d-damaged)"></span> Dañado</div>
+        <div class="item"><span class="sw" style="background:var(--d-possible)"></span> Posiblemente dañado</div>
+        <div class="item"><span class="sw" style="background:var(--d-none)"></span> Sin daño / leve</div>
+      </div>
+      <div class="status" id="demoStatus">En DESPUÉS, los destruidos colapsan en altura. Arrastra con botón derecho para inclinar/girar el 3D.</div>
+      <div class="hint"><b style="color:#ffe066">Esto es una simulación</b> para visualizar cómo se vería la capa de daño. Cuando tengas el grading real <b>EMSR884</b> (Copernicus EMS) lo cargas en el bloque C y sustituye a esta demo.</div>
+    </div>
+  </div>
+
+  <!-- BASE DEL MAPA -->
+  <div class="block" id="b-base">
+    <h3><span class="k">1</span> Base del mapa</h3>
+    <div class="body">
+      <label class="lab">Tipo de base</label>
+      <div class="seg" id="baseSel">
+        <button data-b="sat" class="on">🛰️ Satélite</button>
+        <button data-b="streets">🗺️ Calles</button>
+        <button data-b="osm">OSM</button>
+      </div>
+      <label class="toggle-row" style="margin-top:9px"><input type="checkbox" id="labelsChk" checked> Mostrar nombres/etiquetas sobre el satélite</label>
+      <label class="toggle-row"><input type="checkbox" id="terrainChk"> Relieve 3D del terreno (montañas del Ávila)</label>
+      <div class="status" id="baseStatus">Satélite global (ESRI World Imagery) · sin token, funciona ya.</div>
+      <div class="hint">Inclina/gira: clic derecho + arrastrar (o Ctrl + arrastrar). Rueda = zoom.</div>
+    </div>
+  </div>
+
+  <!-- A · IMÁGENES PRE/POST -->
+  <div class="block folded" id="b-imagery">
+    <h3><span class="k">A</span> Imagen post-evento (overlay)</h3>
+    <div class="body">
+      <div class="hint">Superpón un mosaico satelital real <b>posterior</b> al sismo (Maxar Open Data / Pléiades / WMS de EMS) sobre el satélite base y compáralo con el deslizador de opacidad.</div>
+      <label class="lab">POST · plantilla XYZ ({z}/{x}/{y})</label>
+      <input id="postUrl" type="text" placeholder="https://…/{z}/{x}/{y}.png">
+      <button class="act" id="applyPost">Cargar overlay POST</button>
+      <div id="postWrap" style="display:none">
+        <label class="lab">Opacidad del POST <span id="postOpVal">100%</span></label>
+        <input type="range" id="postOp" min="0" max="100" value="100">
+        <button class="act ghost" id="clearPost">Quitar overlay POST</button>
+      </div>
+      <div class="status" id="imgStatus"></div>
+    </div>
+  </div>
+
+  <!-- B · INSAR -->
+  <div class="block folded" id="b-insar">
+    <h3><span class="k">B</span> Deformación InSAR</h3>
+    <div class="body">
+      <label class="lab">GeoTIFF de desplazamiento LOS (EPSG:4326)</label>
+      <input id="insarFile" type="file" accept=".tif,.tiff">
+      <div class="row">
+        <div>
+          <label class="lab">Rango ± (unidades)</label>
+          <input id="insarRange" type="text" value="0.5">
+        </div>
+        <div>
+          <label class="lab">Opacidad <span id="insarOpVal">80%</span></label>
+          <input type="range" id="insarOp" min="0" max="100" value="80">
+        </div>
+      </div>
+      <button class="act ghost" id="clearInsar" disabled>Quitar capa InSAR</button>
+      <div class="legend">
+        <div class="gradient"></div>
+        <div class="gradient-labels"><span id="insarMin">−0.5</span><span>0</span><span id="insarMax">+0.5</span></div>
+        <div class="hint">Azul = alejamiento del satélite (subsidencia) · Rojo = acercamiento (alzamiento).</div>
+      </div>
+      <div class="status" id="insarStatus">Sin capa. Genera el interferograma co-sísmico (SNAP/ISCE2) o COMET-LiCS.</div>
+    </div>
+  </div>
+
+  <!-- C · DAÑO REAL EMSR884 -->
+  <div class="block folded" id="b-damage">
+    <h3><span class="k">C</span> Daño real por edificio (EMSR884)</h3>
+    <div class="body">
+      <label class="lab">GeoJSON de grading (EMSR884)</label>
+      <input id="dmgFile" type="file" accept=".json,.geojson">
+      <div class="row">
+        <div>
+          <label class="lab">Altura extrusión (m)</label>
+          <input id="dmgHeight" type="text" value="18">
+        </div>
+        <div>
+          <label class="lab">Opacidad <span id="dmgOpVal">85%</span></label>
+          <input type="range" id="dmgOp" min="0" max="100" value="85">
+        </div>
+      </div>
+      <button class="act ghost" id="clearDmg" disabled>Quitar capa daño</button>
+      <div class="status" id="dmgStatus">Sin capa. Descarga el grading en mapping.emergency.copernicus.eu (EMSR884). Al cargarlo, oculta la DEMO.</div>
+    </div>
+  </div>
+
+</div>
+<button id="toggle">‹</button>
+
+<div id="demoNote">
+  <button id="closeNote">✕</button>
+  <b>Modo demostración.</b> Los edificios y su daño son <b>simulados</b> para mostrar la herramienta. No representan daños reales. Usa el interruptor <b>ANTES / DESPUÉS</b> del panel.
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const setStatus = (el,msg,cls)=>{el.className='status'+(cls?(' '+cls):'');el.textContent=msg;};
+
+  // ---------- Fuentes raster (sin token) ----------
+  const SAT_TILES    = ['https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'];
+  const LABEL_TILES  = ['https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'];
+  const STREET_TILES = ['https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'];
+  const OSM_TILES    = ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'];
+  const DEM_TILES    = ['https://elevation-tiles-prod.s3.dualstack.us-east-1.amazonaws.com/terrarium/{z}/{x}/{y}.png'];
+
+  const style = {
+    version:8,
+    glyphs:'https://basemaps.cartocdn.com/gl/positron-gl-style/{fontstack}/{range}.pbf',
+    sources:{
+      sat:    {type:'raster', tiles:SAT_TILES,    tileSize:256, attribution:'Imagery © Esri, Maxar, Earthstar Geographics'},
+      labels: {type:'raster', tiles:LABEL_TILES,  tileSize:256},
+      streets:{type:'raster', tiles:STREET_TILES, tileSize:256, attribution:'© CARTO © OpenStreetMap'},
+      osm:    {type:'raster', tiles:OSM_TILES,    tileSize:256, attribution:'© OpenStreetMap'},
+      dem:    {type:'raster-dem', tiles:DEM_TILES, tileSize:256, encoding:'terrarium', maxzoom:14}
+    },
+    layers:[
+      {id:'bg', type:'background', paint:{'background-color':'#0a0e14'}},
+      {id:'sat',     type:'raster', source:'sat',     layout:{visibility:'visible'}},
+      {id:'streets', type:'raster', source:'streets', layout:{visibility:'none'}},
+      {id:'osm',     type:'raster', source:'osm',     layout:{visibility:'none'}},
+      {id:'labels',  type:'raster', source:'labels',  layout:{visibility:'visible'}}
+    ]
+  };
+
+  const map = new maplibregl.Map({
+    container:'map', style:style,
+    center:[-66.9315,10.602], zoom:15.2, pitch:58, bearing:-12,
+    maxPitch:84, attributionControl:true, dragRotate:true
+  });
+  window.sismoveMap = map;   // acceso para depuración/integración
+  map.addControl(new maplibregl.NavigationControl({visualizePitch:true}), 'top-right');
+  map.addControl(new maplibregl.ScaleControl({unit:'metric'}), 'bottom-left');
+  // Asegura que el lienzo tome el tamaño real del contenedor (evita render en blanco al cargar).
+  if(window.ResizeObserver){ new ResizeObserver(()=>map.resize()).observe(document.getElementById('map')); }
+  window.addEventListener('resize', ()=>map.resize());
+  setTimeout(()=>map.resize(), 250);
+
+  // ---------- DEMO · edificios simulados ----------
+  const GRADES = [
+    {key:'destroyed', color:'#e23b3b', label:'Destruido', w:0.12, collapse:0.28},
+    {key:'severe',    color:'#f5772a', label:'Severo',    w:0.16, collapse:0.62},
+    {key:'damaged',   color:'#f5b82e', label:'Dañado',    w:0.24, collapse:0.85},
+    {key:'possible',  color:'#ffe066', label:'Posible',   w:0.20, collapse:0.96},
+    {key:'none',      color:'#3ec46d', label:'Sin daño',  w:0.28, collapse:1.0}
+  ];
+  let seed = 20260624;
+  function rnd(){ seed = (seed*1664525 + 1013904223) >>> 0; return seed/4294967296; }
+  function pickGrade(){ let r=rnd(),acc=0; for(const g of GRADES){ acc+=g.w; if(r<=acc) return g; } return GRADES[GRADES.length-1]; }
+  const CLUSTERS = [
+    {name:'La Guaira', lon:-66.931, lat:10.601, cols:14, rows:9,  step:0.00045, dmgBoost:1.0},
+    {name:'Caracas',   lon:-66.903, lat:10.506, cols:16, rows:11, step:0.00050, dmgBoost:0.7}
+  ];
+  function footprint(cx,cy,s){
+    const jw=(rnd()*0.4+0.55)*s, jh=(rnd()*0.4+0.55)*s;
+    const ox=(rnd()-0.5)*s*0.18, oy=(rnd()-0.5)*s*0.18;
+    const x0=cx+ox-jw/2, x1=cx+ox+jw/2, y0=cy+oy-jh/2, y1=cy+oy+jh/2;
+    return [[ [x0,y0],[x1,y0],[x1,y1],[x0,y1],[x0,y0] ]];
+  }
+  let ppState='pre';
+  function buildDemoFC(){
+    seed=20260624;
+    const feats=[];
+    CLUSTERS.forEach(cl=>{
+      for(let r=0;r<cl.rows;r++) for(let c=0;c<cl.cols;c++){
+        if(rnd()<0.12) continue;
+        const cx=cl.lon+(c-cl.cols/2)*cl.step, cy=cl.lat+(r-cl.rows/2)*cl.step;
+        let g=pickGrade();
+        if(rnd()<cl.dmgBoost*0.18 && GRADES.indexOf(g)>1) g=pickGrade();
+        const floors=3+Math.floor(rnd()*15);
+        const hFull=floors*3.1;
+        feats.push({type:'Feature', properties:{
+          grade:g.key, label:g.label, colorPost:g.color, colorPre:'#8b97ad',
+          hPre:Math.round(hFull), hPost:Math.round(hFull*g.collapse)
+        }, geometry:{type:'Polygon', coordinates:footprint(cx,cy,cl.step)}});
+      }
+    });
+    return {type:'FeatureCollection', features:feats};
+  }
+  let demoFC=null;
+
+  function ensureDemoLayer(){
+    if(!map.getSource('demo')){
+      map.addSource('demo',{type:'geojson', data:demoFC});
+      map.addLayer({
+        id:'demo-3d', type:'fill-extrusion', source:'demo',
+        paint:{
+          'fill-extrusion-color': ['get','colorPre'],
+          'fill-extrusion-height': ['get','hPre'],
+          'fill-extrusion-base': 0,
+          'fill-extrusion-opacity': 0.9
+        }
+      });
+    } else {
+      map.getSource('demo').setData(demoFC);
+    }
+  }
+  function applyPrePost(){
+    if(!map.getLayer('demo-3d')) return;
+    const post = ppState==='post';
+    map.setPaintProperty('demo-3d','fill-extrusion-color', ['get', post?'colorPost':'colorPre']);
+    map.setPaintProperty('demo-3d','fill-extrusion-height', ['get', post?'hPost':'hPre']);
+    countDemo();
+  }
+  function countDemo(){
+    if(!demoFC) return;
+    if(ppState!=='post'){
+      setStatus($('demoStatus'),`${demoFC.features.length} edificios simulados · ANTES (intactos). Cambia a DESPUÉS para ver el daño.`,'ok');
+      return;
+    }
+    const c={}; demoFC.features.forEach(f=>c[f.properties.label]=(c[f.properties.label]||0)+1);
+    const order=['Destruido','Severo','Dañado','Posible','Sin daño'];
+    setStatus($('demoStatus'),`DESPUÉS · ${demoFC.features.length} edificios · `+order.filter(k=>c[k]).map(k=>`${k}: ${c[k]}`).join(' · '),'ok');
+  }
+  function generateDemo(){ demoFC=buildDemoFC(); ensureDemoLayer(); applyPrePost(); }
+
+  $('genDemo').onclick = ()=>{ generateDemo(); map.flyTo({center:[-66.9315,10.602], zoom:15.2, pitch:58, bearing:-12, duration:1500}); };
+  document.querySelectorAll('#prepost button').forEach(b=>{
+    b.onclick=()=>{ document.querySelectorAll('#prepost button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); ppState=b.dataset.pp; applyPrePost(); };
+  });
+  $('demoOp').oninput = e=>{ $('demoOpVal').textContent=e.target.value+'%'; if(map.getLayer('demo-3d')) map.setPaintProperty('demo-3d','fill-extrusion-opacity',(+e.target.value)/100); };
+
+  // ---------- Base del mapa ----------
+  function applyBase(kind){
+    ['sat','streets','osm'].forEach(id=> map.setLayoutProperty(id,'visibility', id===kind?'visible':'none'));
+    map.setLayoutProperty('labels','visibility', (kind==='sat' && $('labelsChk').checked)?'visible':'none');
+    const names={sat:'Satélite global (ESRI World Imagery)',streets:'Mapa de calles (CARTO Voyager)',osm:'OpenStreetMap'};
+    setStatus($('baseStatus'), names[kind]+' · sin token','ok');
+  }
+  document.querySelectorAll('#baseSel button').forEach(b=>{
+    b.onclick=()=>{ document.querySelectorAll('#baseSel button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); applyBase(b.dataset.b); };
+  });
+  $('labelsChk').onchange = ()=>{ const sat=document.querySelector('#baseSel button.on').dataset.b==='sat'; map.setLayoutProperty('labels','visibility',(sat&&$('labelsChk').checked)?'visible':'none'); };
+  $('terrainChk').onchange = e=>{
+    if(e.target.checked){ map.setTerrain({source:'dem', exaggeration:1.4}); setStatus($('baseStatus'),'Relieve 3D activo (AWS Terrarium DEM)','ok'); }
+    else { map.setTerrain(null); }
+  };
+
+  // ---------- A · Overlay POST ----------
+  function clearPost(){ if(map.getLayer('post-ovl')) map.removeLayer('post-ovl'); if(map.getSource('post-ovl')) map.removeSource('post-ovl'); $('postWrap').style.display='none'; }
+  $('applyPost').onclick = ()=>{
+    const url=$('postUrl').value.trim();
+    if(!url){ setStatus($('imgStatus'),'Indica una URL XYZ del POST','err'); return; }
+    clearPost();
+    try{
+      map.addSource('post-ovl',{type:'raster', tiles:[url], tileSize:256});
+      // insertar bajo etiquetas y edificios
+      const before = map.getLayer('labels') ? 'labels' : undefined;
+      map.addLayer({id:'post-ovl', type:'raster', source:'post-ovl', paint:{'raster-opacity':(+$('postOp').value)/100}}, before);
+      $('postWrap').style.display='block';
+      setStatus($('imgStatus'),'Overlay POST cargado','ok');
+    }catch(e){ setStatus($('imgStatus'),'Error: '+e.message,'err'); }
+  };
+  $('postOp').oninput = e=>{ $('postOpVal').textContent=e.target.value+'%'; if(map.getLayer('post-ovl')) map.setPaintProperty('post-ovl','raster-opacity',(+e.target.value)/100); };
+  $('clearPost').onclick = ()=>{ clearPost(); setStatus($('imgStatus'),'Overlay POST retirado'); };
+
+  // ---------- B · InSAR GeoTIFF ----------
+  function divergingColor(v){
+    const stops=[[44,123,182],[171,217,233],[247,247,247],[253,174,97],[215,25,28]];
+    const t=(v+1)/2*(stops.length-1), i=Math.max(0,Math.min(stops.length-2,Math.floor(t))), f=t-i, a=stops[i], b=stops[i+1];
+    return {r:Math.round(a[0]+(b[0]-a[0])*f), g:Math.round(a[1]+(b[1]-a[1])*f), b:Math.round(a[2]+(b[2]-a[2])*f)};
+  }
+  async function loadInsar(file){
+    setStatus($('insarStatus'),'Procesando GeoTIFF…');
+    try{
+      const tiff = await GeoTIFF.fromArrayBuffer(await file.arrayBuffer());
+      const image = await tiff.getImage();
+      const w=image.getWidth(), h=image.getHeight(), bbox=image.getBoundingBox();
+      const nodata=image.getGDALNoData(), band=(await image.readRasters())[0];
+      const range=Math.abs(parseFloat($('insarRange').value)||0.5);
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      const ctx=cv.getContext('2d'), img=ctx.createImageData(w,h), d=img.data;
+      for(let i=0;i<band.length;i++){
+        let val=band[i]; const o=i*4;
+        if((nodata!=null&&val==nodata)||Number.isNaN(val)||!isFinite(val)){ d[o+3]=0; continue; }
+        const c=divergingColor(Math.max(-1,Math.min(1,val/range)));
+        d[o]=c.r; d[o+1]=c.g; d[o+2]=c.b; d[o+3]=255;
+      }
+      ctx.putImageData(img,0,0);
+      if(map.getLayer('insar')) map.removeLayer('insar');
+      if(map.getSource('insar')) map.removeSource('insar');
+      map.addSource('insar',{type:'image', url:cv.toDataURL(),
+        coordinates:[[bbox[0],bbox[3]],[bbox[2],bbox[3]],[bbox[2],bbox[1]],[bbox[0],bbox[1]]]});
+      const before = map.getLayer('labels') ? 'labels' : undefined;
+      map.addLayer({id:'insar', type:'raster', source:'insar', paint:{'raster-opacity':(+$('insarOp').value)/100}}, before);
+      $('insarMin').textContent='−'+range; $('insarMax').textContent='+'+range; $('clearInsar').disabled=false;
+      map.fitBounds([[bbox[0],bbox[1]],[bbox[2],bbox[3]]],{padding:60,duration:1200});
+      setStatus($('insarStatus'),`OK · ${w}×${h} px`,'ok');
+    }catch(e){ setStatus($('insarStatus'),'Error: '+e.message+' (¿EPSG:4326?)','err'); }
+  }
+  $('insarFile').onchange = e=>{ if(e.target.files[0]) loadInsar(e.target.files[0]); };
+  $('insarOp').oninput = e=>{ $('insarOpVal').textContent=e.target.value+'%'; if(map.getLayer('insar')) map.setPaintProperty('insar','raster-opacity',(+e.target.value)/100); };
+  $('clearInsar').onclick = ()=>{ if(map.getLayer('insar')) map.removeLayer('insar'); if(map.getSource('insar')) map.removeSource('insar'); $('clearInsar').disabled=true; setStatus($('insarStatus'),'Capa InSAR retirada'); };
+
+  // ---------- C · Daño real EMSR884 ----------
+  const DMG_FIELDS=['damage_gra','damage_grade','grading','dmg_grade','damage','notation','class','grade','severity'];
+  function classify(props){
+    let raw='';
+    for(const f of DMG_FIELDS){ for(const k in props){ if(k.toLowerCase()===f){ raw=String(props[k]||''); break; } } if(raw) break; }
+    const s=raw.toLowerCase();
+    if(/destroy|colaps|collapse|total/.test(s)) return {c:'#e23b3b',l:'Destruido'};
+    if(/high|severe|grave|sever/.test(s))      return {c:'#f5772a',l:'Severo'};
+    if(/(^|[^t])damag|dañ|moderate|moderad/.test(s)) return {c:'#f5b82e',l:'Dañado'};
+    if(/possib|posib|slight|leve/.test(s))     return {c:'#ffe066',l:'Posible'};
+    if(/neglig|not|sin|none|no.?affect/.test(s))return {c:'#3ec46d',l:'Sin daño'};
+    return {c:'#9aa7bd',l: raw||'sin clasificar'};
+  }
+  function hideDemo(){ if(map.getLayer('demo-3d')) map.setLayoutProperty('demo-3d','visibility','none'); }
+  async function loadDamage(file){
+    setStatus($('dmgStatus'),'Cargando GeoJSON…');
+    try{
+      const gj=JSON.parse(await file.text());
+      const H=parseFloat($('dmgHeight').value)||18, counts={};
+      (gj.features||[]).forEach(f=>{
+        const {c,l}=classify(f.properties||{}); counts[l]=(counts[l]||0)+1;
+        f.properties=f.properties||{}; f.properties._color=c; f.properties._h=H;
+      });
+      if(map.getLayer('dmg-3d')) map.removeLayer('dmg-3d');
+      if(map.getSource('dmg')) map.removeSource('dmg');
+      map.addSource('dmg',{type:'geojson', data:gj});
+      map.addLayer({id:'dmg-3d', type:'fill-extrusion', source:'dmg', filter:['==','$type','Polygon'],
+        paint:{'fill-extrusion-color':['get','_color'],'fill-extrusion-height':['get','_h'],'fill-extrusion-base':0,'fill-extrusion-opacity':(+$('dmgOp').value)/100}});
+      hideDemo();
+      $('clearDmg').disabled=false;
+      // encuadrar
+      try{
+        let minx=180,miny=90,maxx=-180,maxy=-90;
+        (gj.features||[]).forEach(f=>{ const g=f.geometry; if(!g) return;
+          const scan=co=>{ if(typeof co[0]==='number'){ minx=Math.min(minx,co[0]);maxx=Math.max(maxx,co[0]);miny=Math.min(miny,co[1]);maxy=Math.max(maxy,co[1]); } else co.forEach(scan); };
+          scan(g.coordinates); });
+        if(minx<=maxx) map.fitBounds([[minx,miny],[maxx,maxy]],{padding:60,pitch:55,duration:1400});
+      }catch(_){}
+      setStatus($('dmgStatus'),`REAL · ${(gj.features||[]).length} objetos · `+Object.entries(counts).map(([k,v])=>`${k}: ${v}`).join(' · '),'ok');
+      $('demoStatus').textContent='DEMO oculta: ahora se muestran datos reales EMSR884.';
+    }catch(e){ setStatus($('dmgStatus'),'Error: '+e.message,'err'); }
+  }
+  $('dmgFile').onchange = e=>{ if(e.target.files[0]) loadDamage(e.target.files[0]); };
+  $('dmgOp').oninput = e=>{ $('dmgOpVal').textContent=e.target.value+'%'; if(map.getLayer('dmg-3d')) map.setPaintProperty('dmg-3d','fill-extrusion-opacity',(+e.target.value)/100); };
+  $('clearDmg').onclick = ()=>{ if(map.getLayer('dmg-3d')) map.removeLayer('dmg-3d'); if(map.getSource('dmg')) map.removeSource('dmg'); if(map.getLayer('demo-3d')) map.setLayoutProperty('demo-3d','visibility','visible'); $('clearDmg').disabled=true; setStatus($('dmgStatus'),'Capa de daño retirada · DEMO visible de nuevo'); };
+
+  // ---------- UI ----------
+  $('toggle').onclick=()=>{ const p=$('panel'); p.classList.toggle('collapsed'); $('toggle').textContent=p.classList.contains('collapsed')?'›':'‹'; };
+  document.querySelectorAll('.block > h3').forEach(h=>{ h.onclick=()=>h.parentElement.classList.toggle('folded'); });
+  $('closeNote').onclick=()=>{ $('demoNote').style.display='none'; };
+
+  // ---------- Arranque ----------
+  map.on('load', ()=>{ generateDemo(); map.resize(); });
+})();
+</script>
+</body>
+</html>
